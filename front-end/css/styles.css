@@ -222,7 +222,7 @@ nav h1 a {
 }
 
 #restaurants-list li h1 {
-  color: #f18200;c
+  color: #f18200;
   font-family: Arial,sans-serif;
   font-size: 14pt;
   font-weight: 200;
@@ -331,7 +331,7 @@ nav h1 a {
 }
 
 #reviews-container {
-  width: 60%;
+  width: 50%;
   border-bottom: 1px solid #d9d9d9;
   border-top: 1px solid #fff;
 }
@@ -346,6 +346,13 @@ nav h1 a {
   font-weight: 300;
   letter-spacing: -1px;
   padding-bottom: 1pt;
+}
+
+#reviews-container h3 {
+  color: #f58500;
+  font-size: 18pt;
+  font-weight: 300;
+  letter-spacing: -1px;
 }
 
 #reviews-list {
@@ -449,6 +456,15 @@ nav h1 a {
   color: #fff;
 }
 
+.hidden-label {
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  top: auto;
+}
+
 /* ====================== Responsive Zone ====================== */
 
 @media only screen and (max-width: 400px) {
@@ -531,4 +547,35 @@ nav h1 a {
     width: 100%;
     margin: 0 auto 30px auto;
   }
+}
+
+/* ====================== Review Form ====================== */
+
+#review-form {
+  display: flex;
+  flex-flow: row wrap;
+  padding-bottom: 40px;
+}
+
+#review-name,
+#review-rating,
+#review-comment{
+  flex: 0 1 100%;
+}
+
+#review-submit {
+  flex: 0 1 100%;
+  background-color: #476a77;
+  border-bottom: 3px solid #eee;
+  color: #fff;
+  display: block;
+  font-size: 1rem;
+  padding: 1em 2em;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+#review-submit:hover {
+  background-color: #7ca5b4;
 }

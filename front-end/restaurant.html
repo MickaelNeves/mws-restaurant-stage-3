@@ -55,11 +55,21 @@
       </div>
     </section>
     <!-- end restaurant -->
-    <!-- Beginning reviews -->
+    <!-- Beginning add reviews -->
     <section id="reviews-container">
       <ul id="reviews-list"></ul>
+      <h3>Submit a review :</h3>
+      <form action="#" id="review-form">
+        <label for="review-name" class="hidden-label">Name</label>
+        <input id="review-name" type="text" name="name" placeholder="Name">
+        <label for="review-rating" class="hidden-label">Rating</label>
+        <input id="review-rating" type="number" name="rating" max="5" min="0" placeholder="Rating">
+        <label for="review-comment" class="hidden-label">e-mail:</label>
+        <textarea id="review-comment" placeholder="Please add your comment here." cols="30" rows="10"></textarea>
+        <button type="button" id="review-submit" onclick="submitReview()">Submit</button>
+      </form>
     </section>
-    <!-- End reviews -->
+    <!-- End add reviews -->
   </main>
   <!-- End main -->
 
