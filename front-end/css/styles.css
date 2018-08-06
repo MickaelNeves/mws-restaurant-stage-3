@@ -399,6 +399,11 @@ nav h1 a {
   float: right;
 }
 
+#is-favorite {
+  color: #f58500;
+  text-decoration: underline;
+}
+
 .clear-float {
   clear: both;
 }
@@ -437,6 +442,12 @@ nav h1 a {
 #restaurant-hours td:last-of-type {
   padding: 3px;
   font-weight: normal;
+}
+
+#offline-alert {
+    color: red;
+    font-size: 16px;
+    text-decoration: underline;
 }
 
 /* ==================== Accessibility skip link ================= */

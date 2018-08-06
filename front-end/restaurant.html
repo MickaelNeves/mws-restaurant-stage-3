@@ -60,12 +60,16 @@
       <ul id="reviews-list"></ul>
       <h3>Submit a review :</h3>
       <form action="#" id="review-form">
+        <label for="fav-rest">Favorite Restaurant</label>
+        <input type="radio" name="toggleFav" id="fav-rest" value="1">
+        <label for="unfav-rest">Unfavorite Restaurant</label>
+        <input type="radio" name="toggleFav" id="unfav-rest" checked value="0">
         <label for="review-name" class="hidden-label">Name</label>
         <input id="review-name" type="text" name="name" placeholder="Name">
         <label for="review-rating" class="hidden-label">Rating</label>
         <input id="review-rating" type="number" name="rating" max="5" min="0" placeholder="Rating">
         <label for="review-comment" class="hidden-label">e-mail:</label>
-        <textarea id="review-comment" placeholder="Please add your comment here." cols="30" rows="10"></textarea>
+        <textarea id="review-comment" name="comment" placeholder="Please add your comment here." cols="30" rows="10"></textarea>
         <button type="button" id="review-submit" onclick="submitReview()">Submit</button>
       </form>
     </section>
@@ -81,6 +85,7 @@
 
   <!-- Beginning scripts -->
   <!-- Database helpers -->
+  <script type="application/javascript" charset="utf-8" src="js/idb.js"></script>
   <script type="text/javascript" src="js/dbhelper.js"></script>
   <!-- Main javascript file -->
   <script type="text/javascript" src="js/restaurant_info.js"></script>

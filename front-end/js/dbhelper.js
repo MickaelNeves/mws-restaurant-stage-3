@@ -3,7 +3,7 @@
  */
 class DBHelper {
 
-  /**
+ /**
  * Database URL.
  * Change this to restaurants.json file location on your server.
  */
@@ -12,92 +12,195 @@ class DBHelper {
     return `http://localhost:${port}/restaurants`;
   }
 
-  static IDBCreate(restaurants) {
-    let indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB || window.shimIndexedDB;
+  /**
+   * Open database for write.
+   */
+  static openDatabase() {
+    let store;
+
     if (!window.indexedDB) {
       window.alert("Your browser doesn't support a stable version of IndexedDB. Such and such feature will not be available.");
       return;
     }
-    let open = indexedDB.open("RestReviewsDB", 1);
 
-    open.onupgradeneeded = function () {
-      let db = open.result;
-      let store = db.createObjectStore("RestStore", { keyPath: "id" });
-      let index = store.createIndex("by-id", "id");
+    return idb.open('mws-restaurant', 1, function (upgradeDb) {
+      switch (upgradeDb.oldVersion) {
+        case 0:
+          store = upgradeDb.createObjectStore('restaurants', {
+            keyPath: 'id'
+          });
+          store.createIndex('by-date', 'createdAt');
+
+        case 1:
+          store = upgradeDb.createObjectStore('reviews', {
+            keyPath: 'id'
+          });
+          store.createIndex('by-date', 'createdAt');
+      }
+    })
+  }
+
+  /**
+   * Add a new review to database.
+   */
+  static addNewReview(reviewData) {
+    const data = {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(reviewData)
     };
 
-    open.onerror = function (err) {
-      console.error("Something wrong with IndexDB: " + err.target.errorCode);
-    }
+    return fetch(`http://localhost:1337/reviews/`, data).then((res) => {
+      return res.json();
+    }).catch((error) => {
+      console.log('error:', error);
+      return error;
+    }).then((review) => {
+      console.log(review);
+      return review;
+    });
+  }
 
-    open.onsuccess = function () {
-      let db = open.result;
-      let tx = db.transaction("RestStore", "readwrite");
-      let store = tx.objectStore("RestStore");
-      let index = store.index("by-id");
+  /**
+   * Add a favorite restaurant to database.
+   */
+  static favoriteRestaurant(id, favoriteData) {
+    const data = {
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    };
 
+    return fetch(`http://localhost:1337/restaurants/${id}/?is_favorite=${favoriteData.is_favorite}`, data).then((res) => {
+      return res.json();
+    }).catch((error) => {
+      console.log('error:', error);
+      return error;
+    }).then((favorite) => {
+      console.log(favorite);
+      return favorite;
+    });
+  };
+
+  /**
+   * Fetch all restaurant reviews from database.
+   */
+  static getAllReviewsForRestaurant(rest_id) {
+    const data = {
+      method: 'GET'
+    };
+
+    return fetch(`http://localhost:1337/reviews/?restaurant_id=${rest_id}`, data).then((res) => {
+      return res.json();
+    });
+  }
+
+  /**
+   * Fetch all stored restaurants from database.
+   */
+  static getStoredRestaurants() {
+    const idbPromise = DBHelper.openDatabase();
+
+    return idbPromise.then((db) => {
+      if (!db) {
+        return;
+      }
+      let tx = db.transaction('restaurants');
+      let store = tx.objectStore('restaurants').index('by-date');
+
+      return store.getAll();
+    });
+  }
+
+  /**
+   * Fetch all stored reviews from database.
+   */
+  static getStoredReviews() {
+    const idbPromise = DBHelper.openDatabase();
+
+    return idbPromise.then((db) => {
+      if (!db) {
+        return;
+      }
+      let tx = db.transaction('reviews');
+      let store = tx.objectStore('reviews').index('by-date');
+      db.close();
+
+      return store.getAll();
+    })
+
+  }
+
+  /**
+   * Save reviews in database.
+   */
+  static saveReviewsInDatabase(reviews) {
+    const idbPromise = DBHelper.openDatabase();
+    idbPromise.then(function (db) {
+      if (!db) return;
+
+      let tx = db.transaction('reviews', 'readwrite');
+      let store = tx.objectStore('reviews');
+      reviews.forEach(function (review) {
+        store.put(review);
+      });
+      store.index('by-date').openCursor(null, "prev").then(function (cursor) {
+        return cursor.advance(30);
+      }).then(function deleteReview(cursor) {
+        if (!cursor) return;
+        cursor.delete();
+        return cursor.continue().then(deleteReview);
+      });
+    });
+  };
+
+  /**
+   * Save restaurants in database.
+   */
+  static saveRestaurantsInDatabase(restaurants) {
+    const idbPromise = DBHelper.openDatabase();
+    idbPromise.then(function (db) {
+      if (!db) return;
+
+      let tx = db.transaction('restaurants', 'readwrite');
+      let store = tx.objectStore('restaurants');
       restaurants.forEach(function (restaurant) {
         store.put(restaurant);
       });
-
-      tx.oncomplete = function () {
-        db.close();
-      };
-    }
-  }
-
-  static getCachedData(callback) {
-    let restaurants = [];
-    let indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB || window.shimIndexedDB;
-    if (!window.indexedDB) {
-      window.alert("Your browser doesn't support a stable version of IndexedDB. Such and such feature will not be available.");
-      return;
-    }
-    let open = indexedDB.open("RestReviewsDB", 1);
-
-    open.onsuccess = function () {
-      let db = open.result;
-      let tx = db.transaction("RestStore", "readwrite");
-      let store = tx.objectStore("RestStore");
-      let getData = store.getAll();
-
-      getData.onsuccess = function () {
-        callback(null, getData.result);
-      }
-
-      tx.oncomplete = function () {
-        db.close();
-      };
-    }
-  }
+      store.index('by-date').openCursor(null, "prev").then(function (cursor) {
+        return cursor.advance(30);
+      }).then(function deleteRest(cursor) {
+        if (!cursor) return;
+        cursor.delete();
+        return cursor.continue().then(deleteRest);
+      });
+    });
+  };
 
   /**
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
-    if (navigator.onLine) {
-      let xhr = new XMLHttpRequest();
-      xhr.open('GET', DBHelper.DATABASE_URL);
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          const restaurants = JSON.parse(xhr.responseText);
-          DBHelper.IDBCreate(restaurants);
-          callback(null, restaurants);
-        } else {
-          const error = (`Request Failed. Status: ${xhr.status}`);
-          callback(error, null);
-        }
-      };
-      xhr.send();
-    } else {
-      console.log('App is offline. Using Cached data!');
-      DBHelper.getCachedData((error, restaurants) => {
-        if (restaurants.length > 0) {
-          console.log('Unable to fetch data from server.');
-          callback(null, restaurants);
-        }
+    DBHelper.getStoredRestaurants().then((restaurants) => {
+      if (restaurants.length) {
+        return callback(null, restaurants);
+      }
+
+      fetch(this.DATABASE_URL, { method: 'GET' }).then((res) => {
+        return res.json();
+      }).catch((error) => {
+        console.error('error:', error);
+      }).then((restaurants) => {
+        DBHelper.saveRestaurantsInDatabase(restaurants);
+
+        return callback(null, restaurants);
       });
-    }
+    });
   }
 
   /**

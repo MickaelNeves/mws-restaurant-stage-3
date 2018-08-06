@@ -4,6 +4,7 @@ let urlsToCache = [
     '/index.html',
     '/css/styles.css',
     '/js/dbhelper.js',
+    '/js/idb.js',
     '/js/main.js',
     '/js/restaurant_info.js',
     '/img/1.jpg',
@@ -50,5 +51,14 @@ self.addEventListener('fetch', event => {
             });
         })
     );
+});
+
+self.addEventListener('sync', function (event) {
+    if (event.tag == 'syncRequestReviewSubmission') {
+        DBHelper.getStoredReviews().then((reviews) => {
+            console.log(reviews);
+        });
+
+    }
 });
 
