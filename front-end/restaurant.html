@@ -58,18 +58,29 @@
     <!-- Beginning add reviews -->
     <section id="reviews-container">
       <ul id="reviews-list"></ul>
+
+      <div class="font-center" id="add-favorites-box"></div>
+
       <h3>Submit a review :</h3>
       <form action="#" id="review-form">
-        <label for="fav-rest">Favorite Restaurant</label>
-        <input type="radio" name="toggleFav" id="fav-rest" value="1">
-        <label for="unfav-rest">Unfavorite Restaurant</label>
-        <input type="radio" name="toggleFav" id="unfav-rest" checked value="0">
         <label for="review-name" class="hidden-label">Name</label>
         <input id="review-name" type="text" name="name" placeholder="Name">
+
         <label for="review-rating" class="hidden-label">Rating</label>
-        <input id="review-rating" type="number" name="rating" max="5" min="0" placeholder="Rating">
+        <select id="review-rating">
+          <option value="">Select a value</option>
+          <option value="1">1 star</option>
+          <option value="2">2 stars</option>
+          <option value="3">3 stars</option>
+          <option value="4">4 stars</option>
+          <option value="5">5 stars</option>
+        </select>
+
         <label for="review-comment" class="hidden-label">e-mail:</label>
         <textarea id="review-comment" name="comment" placeholder="Please add your comment here." cols="30" rows="10"></textarea>
+
+        <div id="reviews-form-error"></div>
+
         <button type="button" id="review-submit" onclick="submitReview()">Submit</button>
       </form>
     </section>

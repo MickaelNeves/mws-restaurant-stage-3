@@ -336,6 +336,18 @@ nav h1 a {
   border-top: 1px solid #fff;
 }
 
+#review-form, #add-favorites-box {
+  margin-bottom: 2em;
+  padding-bottom: 2em;
+  border-bottom: 1px solid #eaeaea;
+}
+
+#reviews-form-error {
+  color: red;
+  font-size: 1.1em;
+  margin-bottom: 1em;
+}
+
 #reviews-container {
   padding: 30px 30px 60px;
 }
