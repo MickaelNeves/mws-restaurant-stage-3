@@ -33,11 +33,17 @@
 
   <!-- Beginning main -->
   <main id="maincontent" aria-label="content">
+    <a href="#searchContent" class="skip-link-map">Skip map</a>
     <!-- Beginning map -->
-    <a href="#restaurant-container" class="skip-link-map">Skip map</a>
-    <section id="map-container" role="application" aria-label="Google Maps">
-      <div id="map" role="application" aria-hidden="true"></div>
-    </section>
+    <aside>
+      <a href="#map-container" id="show-map-inside" title="Show map">
+        <div class="bg-map-inside">Click here to show the map</div>
+      </a>
+
+      <div id="map-container" role="application" aria-label="Google Maps">
+        <div id="map" role="application" aria-hidden="true"></div>
+      </div>
+    </aside>
     <!-- End map -->
     <!-- Beginning restaurant -->
     <section id="restaurant-container" role="contentinfo" tabindex="-1">

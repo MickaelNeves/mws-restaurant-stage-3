@@ -204,6 +204,11 @@ addMarkersToMap = (restaurants = self.restaurants) => {
   });
 }
 
+document.getElementById("show-map").addEventListener("click", function () {
+  document.getElementById("map-container").style.display = "block";
+  document.getElementById("show-map").style.display = "none";
+});
+
 /**
  * Lazy loading from https://developers.google.com/web/fundamentals/performance/lazy-loading-guidance/images-and-video/
  */

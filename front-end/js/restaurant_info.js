@@ -263,6 +263,13 @@ function addToFavorites(idRes) {
   }
 }
 
+document.getElementById("show-map-inside").addEventListener("click", function () {
+  document.querySelector(".skip-link-map").style.display = "block";
+  document.getElementById("map").style.display = "block";
+  document.getElementById("map-container").style.display = "block";
+  document.getElementById("show-map-inside").style.display = "none";
+});
+
 function submitReview() {
   let reviewForm = document.getElementById("review-form");
   let reviewFormErr = document.getElementById("reviews-form-error");

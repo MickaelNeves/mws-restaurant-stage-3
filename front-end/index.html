@@ -22,9 +22,17 @@
 
   <main id="maincontent">
     <a href="#searchContent" class="skip-link-map">Skip map</a>
-    <section id="map-container" role="application" aria-label="Google Maps">
-      <div id="map" role="application" aria-hidden="true"></div>
-    </section>
+
+    <aside>
+      <a href="#map-container" id="show-map" title="Show map">
+        <div class="bg-map">Click here to show the map</div>
+      </a>
+
+      <div id="map-container" role="application" aria-label="Google Maps">
+        <div id="map" role="application" aria-hidden="true"></div>
+      </div>
+    </aside>
+
     <section id="searchContent" tabindex="-1" role="search">
       <div class="filter-options center-container">
         <select aria-label="Neighborhoods Select" id="neighborhoods-select" name="neighborhoods">
