@@ -21,9 +21,9 @@
           "Sunday": "12:00 pm - 4:00 pm, 5:30 pm - 11:00 pm"
         },
         "createdAt": 1504095563444,
-        "updatedAt": "2017-09-14T14:01:27.653Z",
+        "updatedAt": "2018-08-19T19:44:44.674Z",
         "id": 1,
-        "is_favorite": false
+        "is_favorite": "true"
       },
       {
         "name": "Emily",
@@ -45,8 +45,8 @@
           "Sunday": "12:00 pm - 3:00 pm, 5:00 pm - 11:00 pm"
         },
         "createdAt": 1504095568414,
-        "updatedAt": "2017-09-14T14:05:54.800Z",
-        "is_favorite": false,
+        "updatedAt": "2018-08-19T15:06:48.690Z",
+        "is_favorite": "true",
         "id": 2
       },
       {
@@ -235,8 +235,8 @@
           "Sunday": "11:00 am - 12:00 am"
         },
         "createdAt": 1504095567183,
-        "updatedAt": 1504095567183,
-        "is_favorite": false,
+        "updatedAt": "2018-08-19T19:44:09.048Z",
+        "is_favorite": "true",
         "id": 10
       }
     ],
@@ -510,6 +510,42 @@
         "updatedAt": 1504095567183,
         "rating": 4,
         "comments": "For a Michelin star restaurant, it's fairly priced and the food is fairly good. Started with a strawberry margarita which was good in flavor but not much alcohol. Had the chicken enchiladas with salsa verde and it was really good. Great balance in flavor and a good portion. Extra tasty with their hot sauces. My wife had the lamb but it was a bit too salty for our taste. Although, it was cooked very well and fell off the bone. The highlight of the night was the tres leches cake. Probably the best I've ever had to be honest. Not too sweet and very milky. Overall, one of my top 3 favorite Mexican in NY."
+      },
+      {
+        "restaurant_id": "1",
+        "name": "a",
+        "rating": "1",
+        "comments": "a",
+        "createdAt": "2018-08-19T15:02:38.609Z",
+        "updatedAt": "2018-08-19T15:02:38.609Z",
+        "id": 31
+      },
+      {
+        "restaurant_id": "1",
+        "name": "b",
+        "rating": "2",
+        "comments": "b",
+        "createdAt": "2018-08-19T15:05:22.161Z",
+        "updatedAt": "2018-08-19T15:05:22.161Z",
+        "id": 32
+      },
+      {
+        "restaurant_id": "1",
+        "name": "abc",
+        "rating": "4",
+        "comments": "abc",
+        "createdAt": "2018-08-19T19:17:02.647Z",
+        "updatedAt": "2018-08-19T19:17:02.647Z",
+        "id": 33
+      },
+      {
+        "restaurant_id": "1",
+        "name": "bb",
+        "rating": "1",
+        "comments": "bb",
+        "createdAt": "2018-08-20T12:21:57.418Z",
+        "updatedAt": "2018-08-20T12:21:57.418Z",
+        "id": 34
       }
     ]
   },
@@ -565,7 +601,7 @@
       "id": 10
     },
     "reviews": {
-      "id": 30
+      "id": 34
     }
   }
 }

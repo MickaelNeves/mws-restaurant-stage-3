@@ -1,5 +1,5 @@
 let restaurant;
-var map;
+let map;
 
 /**
  * Initialize Google map, called from HTML.
@@ -55,6 +55,8 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   const address = document.getElementById('restaurant-address');
   address.innerHTML = restaurant.address;
 
+  const favorites = document.getElementById('favorite-div');
+
   const image = document.getElementById('restaurant-img');
   image.alt = restaurant.name + " in " + restaurant.neighborhood;
   image.title = restaurant.name;
@@ -65,12 +67,33 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   const cuisine = document.getElementById('restaurant-cuisine');
   cuisine.innerHTML = restaurant.cuisine_type;
 
+  DBHelper.openDatabase().then(function (db) {
+    let storeReadOnly = DBHelper.getObjectStore(DBHelper.FAV_REST, 'readonly', db);
+    storeReadOnly.get(restaurant.id)
+      .then(idbData => {
+        if (idbData) {
+          const divFav = document.createElement('div');
+          divFav.innerHTML = `<strong>${restaurant.name}</strong> added to favorites ❤`;
+          favorites.append(divFav)
+        }
+        else {
+          const aFav = document.createElement('a');
+          aFav.innerHTML = '❤ Add to favorites!';
+          aFav.setAttribute("onclick", `addToFavorites(${restaurant.id})`);
+          aFav.setAttribute("id", "addto-favorites");
+          aFav.setAttribute("href", "#restaurant-container");
+          aFav.setAttribute("title", "Add " + restaurant.name + " restaurant to favorites!");
+          favorites.append(aFav)
+        }
+      });
+  });
+
   // fill operating hours
   if (restaurant.operating_hours) {
     fillRestaurantHoursHTML();
   }
   // fill reviews
-  fillReviewsHTML();
+  getAllReviews();
 }
 
 /**
@@ -95,6 +118,43 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
 }
 
 /**
+ * Get the reviews from DB.
+ */
+getAllReviews = () => {
+  DBHelper.openDatabase().then(function (db) {
+    let storeReadOnly = DBHelper.getObjectStore(DBHelper.ONLINE_REVIEWS, 'readonly', db);
+    let indexStoreReadOnly = storeReadOnly.index("restaurant_id").getAll(self.restaurant.id);
+
+    indexStoreReadOnly.then(idbData => {
+      if (idbData && idbData.length > 0) {
+        let offlineStoreReadOnly = DBHelper.getObjectStore(DBHelper.OFFLINE_REVIEWS, 'readonly', db);
+        offlineStoreReadOnly.index("restaurant_id").getAll(self.restaurant.id).then(offlineIdbData => {
+          for (let data in offlineIdbData) {
+            idbData.push(offlineIdbData[data]);
+          }
+
+          fillReviewsHTML(idbData);
+        });
+      } else {
+        getSingleRestReviews(self.restaurant.id).then(reviewsData => {
+          let storeReadWrite = DBHelper.getObjectStore(DBHelper.ONLINE_REVIEWS, 'readwrite', db);
+
+          reviewsData.forEach(jsonElement => {
+            storeReadWrite.put(jsonElement);
+          });
+
+          let indexStoreReadWrite = storeReadWrite.index("restaurant_id").getAll(self.restaurant.id);
+
+          indexStoreReadWrite.then(idbData => {
+            fillReviewsHTML(idbData);
+          })
+        }).catch(e => console.log(e))
+      }
+    });
+  });
+}
+
+/**
  * Create review HTML and add it to the webpage.
  */
 createReviewHTML = (review) => {
@@ -109,7 +169,7 @@ createReviewHTML = (review) => {
   topDiv.appendChild(name);
 
   const date = document.createElement('p');
-  date.innerHTML = new Date(review.createdAt);
+  date.innerHTML = review.date;
   topDiv.appendChild(date);
   li.appendChild(topDiv);
 
@@ -143,125 +203,119 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
   title.innerHTML = 'Reviews';
   container.appendChild(title);
 
-  DBHelper.fetchRestaurantById(self.restaurant.id, ((error, restaurant) => {
-    if (error) {
-      console.error(error);
-    }
-    else {
-      const favoriteNotify = document.createElement('p');
-      favoriteNotify.setAttribute('id', 'is-favorite');
-      let isFavorite = false;
-
-      isFavorite = restaurant.is_favorite;
-      isFavorite === 'true' ? favoriteNotify.innerHTML = `Marked as Favorite!` : favoriteNotify.innerHTML = `Not Favorite!`;
-
-      container.prepend(favoriteNotify);
-    }
-  }));
-
-  if (!window.navigator.onLine) {
-    const notifyOfflineConnection = document.createElement('p');
-    notifyOfflineConnection.innerHTML = "No network connection! You can still add reviews!";
-    notifyOfflineConnection.setAttribute('id', 'offline-alert');
-    container.appendChild(notifyOfflineConnection);
-  }
-
-  DBHelper.getAllReviewsForRestaurant(self.restaurant.id).then((reviews) => {
-    if (!reviews) {
-      const noReviews = document.createElement('p');
-      noReviews.innerHTML = 'No reviews yet!';
-      container.appendChild(noReviews);
-      return;
-    }
-
-    DBHelper.saveReviewsInDatabase(reviews);
-
-    const ul = document.getElementById('reviews-list');
-    reviews.forEach((review) => {
-      ul.appendChild(createReviewHTML(review));
-    });
-    container.appendChild(ul);
-
-  }).catch((error) => {
-    console.log(error);
-    if (!window.navigator.onLine) {
-      DBHelper.getStoredReviews().then((idbReviews) => {
-        reviews = idbReviews;
-
-        navigator.serviceWorker.ready.then(function (swRegistration) {
-          swRegistration.sync.register('syncRequestReviewSubmission');
-        });
-
-        const ul = document.getElementById('reviews-list');
-        reviews.forEach((review) => {
-          ul.appendChild(createReviewHTML(review));
-        });
-        container.appendChild(ul);
-      });
-    }
+  const ul = document.getElementById('reviews-list');
+  reviews.forEach((review) => {
+    ul.appendChild(createReviewHTML(review));
   });
+  container.appendChild(ul);
+
+  if (!reviews) {
+    const noReviews = document.createElement('p');
+    noReviews.innerHTML = 'No reviews yet!';
+    container.appendChild(noReviews);
+    return;
+  }
 };
 
-function submitReview() {
-  const id = getParameterByName('id');
-  const name = document.getElementById("review-form").elements.namedItem("name").value;
-  const rating = document.getElementById("review-form").elements.namedItem("rating").value;
-  const comment = document.getElementById("review-form").elements.namedItem("comment").value;
-  const favorite = document.querySelector('input[name="toggleFav"]:checked').value;
-  const favoriteNotify =document.getElementById("is-favorite");
-
-  const review = {
-    "restaurant_id": id,
-    "name": name.trim(),
-    "rating": rating,
-    "comments": comment.trim()
-  }
-
-  DBHelper.addNewReview(review).then((response) => {
-    if (!window.navigator.onLine) {
-      navigator.serviceWorker.ready.then(function (swRegistration) {
-        swRegistration.sync.register('syncRequestReviewSubmission');
+/**
+ * Get reviews data of single restaurant.
+ */
+const getSingleRestReviews = (idRest) => {
+  return new Promise((resolve, reject) => {
+    fetch(DBHelper.REVIEWS_URL + "?restaurant_id=" + idRest)
+      .then(res => res.json())
+      .then(jsonRes => {
+        reviewsData = [];
+        jsonRes.forEach(elem => {
+          let revObj = DBHelper.getObjectReview(elem.id, elem.name, elem.comments, new Date(elem.createdAt), elem.rating, elem.restaurant_id);
+          reviewsData.push(revObj);
+        })
+        resolve(reviewsData);
       })
+      .catch(e => {
+        reject(Error("Error on fetch review function. " + e));
+      })
+  })
+}
 
-      DBHelper.getStoredReviews().then((reviews) => {
-        let reviewId = reviews.length + 1;
-        review.createdAt = Date.now();
-        review.id = reviewId;
-        reviews.push(review);
-        cachedReviews = reviews;
-        return DBHelper.saveReviewsInDatabase(reviews);
-      }).then(() => {
-        console.log("Saved!");
-      });
+function addToFavorites(idRes) {
+  if (navigator.onLine) {
+    let fetchReviewsOption = {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      }
     }
-  });
 
-  let favoriteData = {};
+    fetch(DBHelper.getFavoritePutUrl(idRes), fetchReviewsOption)
+      .then(response => response.json())
+      .then(jsonData => {
+        DBHelper.openDatabase().then(function (db) {
+          let storeReadWrite = DBHelper.getObjectStore(DBHelper.FAV_REST, 'readwrite', db);
+          storeReadWrite.put({
+            id: idRes
+          });
+        });
+      }).then(location.reload())
+      .catch(e => {
+        console.log("Error on the review POST function. " + e)
+      })
+  }
+}
 
-  if (favorite == 1) {
-    favoriteData = {
-      is_favorite: true
-    }
-  }else {
-    favoriteData = {
-      is_favorite: false
+function submitReview() {
+  let reviewForm = document.getElementById("review-form");
+  let reviewFormErr = document.getElementById("reviews-form-error");
+
+  let idRestaurant = getParameterByName('id');
+  const revName = reviewForm.elements.namedItem("name").value;
+  const revRating = reviewForm.elements.namedItem("rating").value;
+  const revComments = reviewForm.elements.namedItem("comment").value;
+
+  if (!revName || !revRating || !revComments) {
+    reviewFormErr.textContent = "Error! Check Fields!";
+  } else {
+    reviewFormErr.textContent = "";
+    reviewForm.reset();
+
+    if (navigator.onLine) {
+      let fetchReviewsOption = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          "restaurant_id": idRestaurant,
+          "name": revName,
+          "rating": revRating,
+          "comments": revComments
+        })
+      }
+
+      fetch(DBHelper.REVIEWS_URL, fetchReviewsOption)
+        .then(response => response.json())
+        .then(jsonData => {
+          DBHelper.openDatabase().then(function (db) {
+            let storeReadWrite = DBHelper.getObjectStore(DBHelper.ONLINE_REVIEWS, 'readwrite', db);
+            let objectRev = DBHelper.getObjectReview(jsonData.id, revName, revComments, new Date(jsonData.createdAt), revRating, idRestaurant);
+
+            storeReadWrite.put(objectRev);
+          }).then(location.reload());
+        })
+        .catch(e => {
+          console.log("Error on the review POST function. " + e)
+        })
+    } else {
+      DBHelper.openDatabase().then(function (db) {
+        let storeReadWrite = DBHelper.getObjectStore(DBHelper.OFFLINE_REVIEWS, 'readwrite', db);
+
+        storeReadWrite.count().then(numRows => {
+          let objectRev = DBHelper.getObjectReview(numRows, revName, revComments, new Date(), revRating, idRestaurant);
+          storeReadWrite.put(objectRev);
+        });
+      }).then(location.reload());
     }
   }
-
-  DBHelper.favoriteRestaurant(self.restaurant.id, favoriteData).then((rest) => {
-    rest.is_favorite === 'true' ? favoriteNotify.innerHTML = `Marked as Favorite!` : favoriteNotify.innerHTML = `Not Favorite!`;
-
-    DBHelper.getStoredRestaurants().then((restaurants) => {
-      restaurants.find((restaurant) => {
-        return restaurant.id === self.restaurant.id
-      }).is_favorite = rest.is_favorite;
-
-      DBHelper.saveRestaurantsInDatabase(restaurants);
-
-    });
-  });
-
-  location.reload();
 }
 
 /**

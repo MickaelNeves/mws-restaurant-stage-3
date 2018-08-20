@@ -336,7 +336,7 @@ nav h1 a {
   border-top: 1px solid #fff;
 }
 
-#review-form, #add-favorites-box {
+#favorite-div {
   margin-bottom: 2em;
   padding-bottom: 2em;
   border-bottom: 1px solid #eaeaea;
@@ -519,6 +519,7 @@ nav h1 a {
   }
 
   .inside #map-container {
+    padding-right: 0;
     height: 310px;
     margin: 132px 0 0 0;
     position: relative;

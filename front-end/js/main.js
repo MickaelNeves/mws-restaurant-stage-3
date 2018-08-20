@@ -78,6 +78,10 @@ regServiceWorker = () => {
     }).catch(function (error) {
       console.log('Service Worker failed to register', error);
     });
+
+    navigator.serviceWorker.ready.then(function (swRegistration) {
+      return swRegistration.sync.register('offlineSync');
+    });
   }
 }
 

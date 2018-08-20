@@ -1,3 +1,6 @@
+self.importScripts("js/dbhelper.js");
+self.importScripts("js/idb.js");
+
 let staticCacheName = 'mws-restaurant-cache-v6';
 let urlsToCache = [
     '/',
@@ -54,11 +57,58 @@ self.addEventListener('fetch', event => {
 });
 
 self.addEventListener('sync', function (event) {
-    if (event.tag == 'syncRequestReviewSubmission') {
-        DBHelper.getStoredReviews().then((reviews) => {
-            console.log(reviews);
-        });
-
+    if (event.tag == 'offlineSync') {
+        event.waitUntil(offlineReviewsDispatch());
     }
 });
+
+function offlineReviewsDispatch() {
+    if (navigator.onLine) {
+        DBHelper.openDatabase().then(function (db) {
+            let storeReadOnly = DBHelper.getObjectStore(DBHelper.OFFLINE_REVIEWS, 'readonly', db);
+
+            storeReadOnly.count().then(numRows => {
+                if (numRows > 0) {
+                    storeReadOnly.getAll().then(idbData => {
+                        for (let idx in idbData) {
+                            let fetchReviewsOption = {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    "restaurant_id": idbData[idx].restaurant_id,
+                                    "name": idbData[idx].name,
+                                    "rating": idbData[idx].rating,
+                                    "comments": idbData[idx].comments
+                                })
+                            }
+
+                            fetch(DBHelper.REVIEWS_URL, fetchReviewsOption)
+                                .then(response => response.json())
+                                .then(jsonData => {
+                                    DBHelper.openDatabase().then(function (db) {
+                                        let mainStoreReadWrite = DBHelper.getObjectStore(DBHelper.ONLINE_REVIEWS, 'readwrite', db);
+                                        let objectRev = DBHelper.getObjectReview(jsonData.id, jsonData.name, jsonData.comments, new Date(jsonData.createdAt), jsonData.rating, jsonData.restaurant_id);
+
+                                        mainStoreReadWrite.put(objectRev);
+                                    });
+                                })
+                                .catch(e => {
+                                    console.log("Error on the review POST function. " + e)
+                                })
+                        }
+                    })
+                }
+            });
+        })
+            .then(() => {
+                DBHelper.openDatabase().then(function (db) {
+                    // Delete data from offline os when I'm online and I've done the POST request
+                    let deleteStoreReadWrite = DBHelper.getObjectStore(DBHelper.OFFLINE_REVIEWS, 'readwrite', db);
+                    deleteStoreReadWrite.clear();
+                });
+            });
+    }
+}
 
